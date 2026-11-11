@@ -1,69 +1,54 @@
-# immo-eliza-ml
+# Immo-Eliza: Predicting Belgian House Prices
 
+Can we predict the price of a house or apartment in Belgium from its features? This is the second step of the Immo-Eliza project at BeCode:
 
+1. [Scraping](https://github.com/muntadherabdulhusein/immo-eliza-scraping) property listings
+2. **Machine learning model** (this repo)
+3. [Deployment](https://github.com/muntadherabdulhusein/immo-eliza-deployment) of the model as an API
 
+## The data
 
+`properties.csv` has about 75,000 Belgian properties with 30 columns: price, type (house, apartment, villa…), region, province, locality, living area, number of bedrooms, garden, swimming pool and more.
 
-This project builds a machine learning model to predict property prices based on various features from a real estate dataset. The project includes data preprocessing, feature encoding, scaling, and model training with evaluation metrics to assess the model's accuracy.
+## What I did
 
-## Project Overview
+- **Cleaning:** dropped latitude/longitude and ID, filled missing numbers with the mean and removed rows where important text values were missing. About 20,000 complete properties were left.
+- **Encoding and scaling:** one-hot encoded the categorical columns (type, region, locality…) and standardised the numbers.
+- **Exploring:** looked at which features are most related to the price.
+- **Models:** started with a simple linear regression on one feature, then multiple linear regression on the top 10 features, and finally **XGBoost**.
 
-The dataset used contains various features of properties, including location, size, and other property-specific details. The goal is to predict property prices by training a machine learning model and evaluating its performance.
+## Results
 
-## Prerequisites
+| Model | R² | RMSE |
+|---|---|---|
+| XGBoost | **0.82** | about €208,000 |
 
-- Python
-- Libraries:
-  - 'pandas'
-  - 'numpy'
-  - 'matplotlib'
-  - 'seaborn'
-  - 'scikit-learn'
-  - 'xgboost'
+The XGBoost model explains about 82% of the variation in prices. The RMSE is still quite high, mostly because of very expensive properties (villas, exceptional properties) that are hard to predict.
 
-## Data Preprocessing
+The features most related to the price:
 
+- living area (`total_area_sqm`)
+- number of bedrooms
+- being in Brugge
+- having a swimming pool
+- being a villa
 
-Data Loading: Load the dataset from a CSV file.
-Missing Values: Check for and handle missing values:
-Drop columns latitude and longitude.
-Fill missing numeric values with the mean.
-Remove rows with non-numeric missing values labeled as 'MISSING'.
-Feature Selection: Drop irrelevant columns, including id and price (target variable).
-One-Hot Encoding: Encode categorical features to prepare them for model training.
-Feature Scaling: Standardize numerical features using StandardScaler.
+## Files
 
+- `immo.ipynb`: exploration, cleaning and all the models
+- `main.py`: the cleaning and XGBoost training as a script
+- `xgboost_model.pkl`: the trained model, used in the deployment repo
+- `properties.csv`: the dataset
 
+## Run it
 
-## Exploratory Data Analysis 
+```
+pip install pandas numpy scikit-learn xgboost matplotlib seaborn
+python main.py
+```
 
-Correlation Analysis: Determine features most correlated with the target variable (price).
-Top 10 Correlated Features: Identify and select the 10 features with the highest correlation to price.
+## What I would improve
 
-
-## Model Training
-
-Train-Test Split: Split the dataset into training and testing sets (80%-20%).
-
-
-
-
-## Linear Regression:
-
-Train a simple linear regression model with the feature most correlated with price.
-Plot the regression line against actual values.
-
-
-
-## Multiple Linear Regression:
-
-Train a multiple linear regression model using the top 10 correlated features.
-Evaluate using Mean Squared Error (MSE) and R-squared metrics.
-
-## using xgboost as another models 
-I used xgboost to check my result as a secound ML model.  
-
-## Model Evaluation
-
-Mean Squared Error (MSE): Evaluates the average squared difference between predicted and actual prices.
-R-squared (R²): Indicates the proportion of variance in the target variable explained by the model.
+- Remove extreme outliers before training, or predict the log of the price
+- Tune the XGBoost parameters with cross-validation
+- Use the latitude/longitude instead of dropping them
